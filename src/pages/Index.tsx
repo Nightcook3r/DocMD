@@ -1,36 +1,53 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FileDropzone from '@/components/FileDropzone';
 import MarkdownEditor from '@/components/MarkdownEditor';
 import HistoryList from '@/components/HistoryList';
 import ProcessingQueue, { ProcessingFile } from '@/components/ProcessingQueue';
 import ConversionSettings, { MarkdownSettings } from '@/components/ConversionSettings';
 import ThemeToggle from '@/components/ThemeToggle';
-import { convertToMarkdown, downloadMarkdown } from '@/utils/converter';
+import { convertToMarkdown, downloadMarkdown, downloadBatchAsZip } from '@/utils/converter';
 import { extractTextFromPDF } from '@/utils/pdf-parser';
 import { extractTextFromImage } from '@/utils/ocr-parser';
 import { useHistory, HistoryItem } from '@/hooks/use-history';
 import { MadeWithDyad } from "@/components/made-with-dyad";
-import { Sparkles, Loader2, History, FileUp, Zap, Shield, Globe } from 'lucide-react';
+import { Sparkles, Loader2, History, FileUp, Zap, Shield, Globe, Archive } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showError, showSuccess } from '@/utils/toast';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
-  const [markdown, setMarkdown] = useState<string>('');
-  const [fileName, setFileName] = useState<string>('documento.md');
+  const [markdown, setMarkdown] = useState<string>(() => localStorage.getItem('docmd_draft') || '');
+  const [fileName, setFileName] = useState<string>(() => localStorage.getItem('docmd_filename') || 'documento.md');
   const [processingQueue, setProcessingQueue] = useState<ProcessingFile[]>([]);
   const [activeTab, setActiveTab] = useState("converter");
-  const [ocrLang, setOcrLang] = useState("por+eng");
-  const [settings, setSettings] = useState<MarkdownSettings>({
-    headingStyle: 'atx',
-    hr: '---',
-    bullet: '*',
-    codeBlockStyle: 'fenced',
-    keepImages: true
+  const [ocrLang, setOcrLang] = useState(() => localStorage.getItem('docmd_ocr_lang') || "por+eng");
+  
+  const [settings, setSettings] = useState<MarkdownSettings>(() => {
+    const saved = localStorage.getItem('docmd_settings');
+    return saved ? JSON.parse(saved) : {
+      headingStyle: 'atx',
+      hr: '---',
+      bullet: '*',
+      codeBlockStyle: 'fenced',
+      keepImages: true
+    };
   });
   
   const { history, addToHistory, removeFromHistory, clearHistory } = useHistory();
+
+  // Auto-save effect
+  useEffect(() => {
+    localStorage.setItem('docmd_draft', markdown);
+    localStorage.setItem('docmd_filename', fileName);
+  }, [markdown, fileName]);
+
+  // Settings persistence effect
+  useEffect(() => {
+    localStorage.setItem('docmd_settings', JSON.stringify(settings));
+    localStorage.setItem('docmd_ocr_lang', ocrLang);
+  }, [settings, ocrLang]);
 
   const handleFilesSelect = async (files: File[]) => {
     const newQueue: ProcessingFile[] = files.map(f => ({
@@ -85,6 +102,17 @@ const Index = () => {
     ));
   };
 
+  const handleBatchDownload = async () => {
+    const completedFiles = processingQueue
+      .filter(f => f.status === 'completed' && f.result)
+      .map(f => ({ name: f.name, content: f.result! }));
+    
+    if (completedFiles.length === 0) return;
+    
+    await downloadBatchAsZip(completedFiles);
+    showSuccess("Download em lote iniciado!");
+  };
+
   const handleSelectFromHistory = (item: HistoryItem) => {
     setMarkdown(item.content);
     setFileName(item.name.endsWith('.md') ? item.name : item.name + '.md');
@@ -92,24 +120,20 @@ const Index = () => {
   };
 
   const isAnyProcessing = processingQueue.some(f => f.status === 'processing' || f.status === 'pending');
+  const hasCompletedFiles = processingQueue.some(f => f.status === 'completed');
 
   return (
     <div className="min-h-screen bg-background transition-colors duration-500">
       {/* Top Navigation */}
       <nav className="border-b bg-background/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3 group cursor-pointer">
+          <div className="flex items-center gap-3 group cursor-pointer" onClick={() => { setMarkdown(''); setFileName('documento.md'); setActiveTab('converter'); }}>
             <div className="bg-primary text-primary-foreground p-2 rounded-2xl group-hover:rotate-12 transition-transform duration-300 shadow-lg shadow-primary/20">
               <FileUp size={24} />
             </div>
             <span className="font-black text-2xl tracking-tighter">Doc<span className="text-primary">MD</span></span>
           </div>
           <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-6 mr-6 text-sm font-medium text-muted-foreground">
-              <a href="#" className="hover:text-primary transition-colors">Recursos</a>
-              <a href="#" className="hover:text-primary transition-colors">API</a>
-              <a href="#" className="hover:text-primary transition-colors">Preços</a>
-            </div>
             <ThemeToggle />
           </div>
         </div>
@@ -157,11 +181,24 @@ const Index = () => {
               onSettingsChange={setSettings}
             />
             
-            <ProcessingQueue 
-              queue={processingQueue} 
-              onClear={() => setProcessingQueue([])}
-              onViewResult={(res, name) => { setMarkdown(res); setFileName(name.endsWith('.md') ? name : name + '.md'); }}
-            />
+            <div className="space-y-4">
+              {hasCompletedFiles && (
+                <Button 
+                  onClick={handleBatchDownload}
+                  className="w-full gap-2 h-12 rounded-2xl font-bold shadow-lg shadow-primary/10"
+                  variant="secondary"
+                >
+                  <Archive size={18} />
+                  Baixar Tudo (ZIP)
+                </Button>
+              )}
+              
+              <ProcessingQueue 
+                queue={processingQueue} 
+                onClear={() => setProcessingQueue([])}
+                onViewResult={(res, name) => { setMarkdown(res); setFileName(name.endsWith('.md') ? name : name + '.md'); }}
+              />
+            </div>
 
             {history.length > 0 && (
               <div className="p-8 rounded-3xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/10 space-y-4 relative overflow-hidden group">

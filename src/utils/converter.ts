@@ -1,4 +1,5 @@
 import TurndownService from 'turndown';
+import JSZip from 'jszip';
 
 export interface ConverterOptions {
   headingStyle?: 'atx' | 'setext';
@@ -9,7 +10,6 @@ export interface ConverterOptions {
 }
 
 export const convertToMarkdown = (content: string, type: string, options: ConverterOptions = {}): string => {
-  // Usamos 'as any' para evitar erro de tipagem se a definição do Turndown estiver incompleta
   const turndownOptions: any = {
     headingStyle: options.headingStyle || 'atx',
     codeBlockStyle: options.codeBlockStyle || 'fenced',
@@ -23,10 +23,6 @@ export const convertToMarkdown = (content: string, type: string, options: Conver
     turndownService.remove('img');
   }
 
-  if (type.includes('html')) {
-    return turndownService.turndown(content);
-  }
-  
   return turndownService.turndown(content);
 };
 
@@ -35,7 +31,26 @@ export const downloadMarkdown = (content: string, filename: string) => {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = filename.replace(/\.[^/.]+$/, "") + ".md";
+  link.download = filename.endsWith('.md') ? filename : `${filename.replace(/\.[^/.]+$/, "")}.md`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
+export const downloadBatchAsZip = async (files: { name: string, content: string }[]) => {
+  const zip = new JSZip();
+  
+  files.forEach(file => {
+    const name = file.name.endsWith('.md') ? file.name : `${file.name.replace(/\.[^/.]+$/, "")}.md`;
+    zip.file(name, file.content);
+  });
+
+  const content = await zip.generateAsync({ type: "blob" });
+  const url = URL.createObjectURL(content);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `docmd-export-${Date.now()}.zip`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
