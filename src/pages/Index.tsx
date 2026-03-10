@@ -12,7 +12,7 @@ import { extractTextFromPDF } from '@/utils/pdf-parser';
 import { extractTextFromImage } from '@/utils/ocr-parser';
 import { useHistory, HistoryItem } from '@/hooks/use-history';
 import { MadeWithDyad } from "@/components/made-with-dyad";
-import { Sparkles, Loader2, History, FileUp } from 'lucide-react';
+import { Sparkles, Loader2, History, FileUp, Zap, Shield, Globe } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showError, showSuccess } from '@/utils/toast';
 
@@ -94,38 +94,62 @@ const Index = () => {
   const isAnyProcessing = processingQueue.some(f => f.status === 'processing' || f.status === 'pending');
 
   return (
-    <div className="min-h-screen bg-background transition-colors duration-300">
+    <div className="min-h-screen bg-background transition-colors duration-500">
       {/* Top Navigation */}
-      <nav className="border-b bg-card/50 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
-            <div className="bg-primary text-primary-foreground p-1.5 rounded-lg">
-              <FileUp size={20} />
+      <nav className="border-b bg-background/80 backdrop-blur-xl sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-3 group cursor-pointer">
+            <div className="bg-primary text-primary-foreground p-2 rounded-2xl group-hover:rotate-12 transition-transform duration-300 shadow-lg shadow-primary/20">
+              <FileUp size={24} />
             </div>
-            <span>Doc<span className="text-primary">MD</span></span>
+            <span className="font-black text-2xl tracking-tighter">Doc<span className="text-primary">MD</span></span>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-6 mr-6 text-sm font-medium text-muted-foreground">
+              <a href="#" className="hover:text-primary transition-colors">Recursos</a>
+              <a href="#" className="hover:text-primary transition-colors">API</a>
+              <a href="#" className="hover:text-primary transition-colors">Preços</a>
+            </div>
+            <ThemeToggle />
+          </div>
         </div>
       </nav>
 
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        {/* Header */}
-        <div className="text-center space-y-4 mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider mb-2">
-            <Sparkles size={12} />
-            <span>Conversor Profissional</span>
+      <div className="max-w-7xl mx-auto px-6 py-16 md:py-24">
+        {/* Hero Section */}
+        {!markdown && !isAnyProcessing && (
+          <div className="text-center space-y-8 mb-20 animate-in fade-in slide-in-from-top-8 duration-1000">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest border border-primary/20">
+              <Sparkles size={14} className="animate-pulse" />
+              <span>Inteligência Artificial Integrada</span>
+            </div>
+            <h1 className="text-5xl md:text-8xl font-black tracking-tight text-foreground leading-[0.9]">
+              Documentos para <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-600">Markdown Puro.</span>
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              A ferramenta definitiva para desenvolvedores e escritores. Converta PDFs complexos, imagens e HTML em Markdown limpo em segundos.
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto pt-8">
+              {[
+                { icon: <Zap className="text-yellow-500" />, title: "Ultra Rápido", desc: "Processamento local instantâneo." },
+                { icon: <Shield className="text-green-500" />, title: "Privacidade", desc: "Seus arquivos nunca saem do navegador." },
+                { icon: <Globe className="text-blue-500" />, title: "Multi-idioma", desc: "OCR avançado para +100 línguas." }
+              ].map((feature, i) => (
+                <div key={i} className="p-6 rounded-3xl bg-card border hover:border-primary/50 transition-all duration-300 text-left group">
+                  <div className="mb-4 p-3 rounded-2xl bg-muted w-fit group-hover:scale-110 transition-transform">{feature.icon}</div>
+                  <h3 className="font-bold mb-1">{feature.title}</h3>
+                  <p className="text-sm text-muted-foreground">{feature.desc}</p>
+                </div>
+              ))}
+            </div>
           </div>
-          <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-foreground">
-            Transforme seus documentos.
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            A maneira mais rápida de converter PDFs, imagens e HTML para Markdown limpo e organizado.
-          </p>
-        </div>
+        )}
 
-        <div className="flex flex-col lg:flex-row gap-10 items-start">
+        <div className="flex flex-col lg:flex-row gap-12 items-start">
           {/* Sidebar */}
-          <aside className="w-full lg:w-80 space-y-6 shrink-0">
+          <aside className="w-full lg:w-80 space-y-8 shrink-0 sticky top-32">
             <ConversionSettings 
               ocrLang={ocrLang} 
               onOcrLangChange={setOcrLang}
@@ -140,18 +164,21 @@ const Index = () => {
             />
 
             {history.length > 0 && (
-              <div className="p-6 rounded-2xl bg-primary/5 border border-primary/10 space-y-2">
-                <p className="text-xs font-bold text-primary uppercase tracking-widest">Estatísticas</p>
-                <div className="grid grid-cols-2 gap-4 pt-2">
+              <div className="p-8 rounded-3xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/10 space-y-4 relative overflow-hidden group">
+                <div className="absolute -right-4 -bottom-4 text-primary/5 group-hover:scale-110 transition-transform duration-700">
+                  <Zap size={120} />
+                </div>
+                <p className="text-xs font-black text-primary uppercase tracking-[0.2em]">Sua Produtividade</p>
+                <div className="grid grid-cols-2 gap-6 pt-2 relative z-10">
                   <div>
-                    <p className="text-2xl font-bold">{history.length}</p>
-                    <p className="text-[10px] text-muted-foreground uppercase">Arquivos</p>
+                    <p className="text-3xl font-black">{history.length}</p>
+                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Arquivos</p>
                   </div>
                   <div>
-                    <p className="text-2xl font-bold">
+                    <p className="text-3xl font-black">
                       {Math.round(history.reduce((acc, curr) => acc + curr.content.length, 0) / 1000)}k
                     </p>
-                    <p className="text-[10px] text-muted-foreground uppercase">Caracteres</p>
+                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Caracteres</p>
                   </div>
                 </div>
               </div>
@@ -161,25 +188,28 @@ const Index = () => {
           {/* Main Content */}
           <main className="flex-1 w-full min-w-0">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="inline-flex h-12 items-center justify-center rounded-xl bg-muted p-1 text-muted-foreground mb-8">
-                <TabsTrigger value="converter" className="rounded-lg px-6 py-2 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm gap-2">
-                  <FileUp size={16} /> Conversor
+              <TabsList className="inline-flex h-14 items-center justify-center rounded-2xl bg-muted/50 p-1.5 text-muted-foreground mb-10 border">
+                <TabsTrigger value="converter" className="rounded-xl px-8 py-2.5 text-sm font-bold transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xl gap-2">
+                  <FileUp size={18} /> Conversor
                 </TabsTrigger>
-                <TabsTrigger value="history" className="rounded-lg px-6 py-2 text-sm font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm gap-2">
-                  <History size={16} /> Histórico
+                <TabsTrigger value="history" className="rounded-xl px-8 py-2.5 text-sm font-bold transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xl gap-2">
+                  <History size={18} /> Histórico
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent value="converter" className="mt-0 focus-visible:outline-none">
                 {!markdown && !isAnyProcessing ? (
-                  <FileDropzone onFilesSelect={handleFilesSelect} />
+                  <div className="animate-in zoom-in-95 duration-500">
+                    <FileDropzone onFilesSelect={handleFilesSelect} />
+                  </div>
                 ) : (
-                  <div className="space-y-6">
+                  <div className="space-y-8">
                     {isAnyProcessing && !markdown && (
-                      <div className="p-20 text-center bg-card border-2 border-dashed rounded-3xl shadow-sm animate-pulse">
-                        <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto mb-6" />
-                        <h3 className="text-xl font-bold mb-2">Processando sua fila...</h3>
-                        <p className="text-muted-foreground">Isso pode levar alguns segundos dependendo do tamanho dos arquivos.</p>
+                      <div className="p-32 text-center bg-card border-2 border-dashed rounded-[3rem] shadow-2xl animate-pulse relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 animate-shimmer" />
+                        <Loader2 className="w-16 h-16 text-primary animate-spin mx-auto mb-8" />
+                        <h3 className="text-2xl font-black mb-3">Extraindo Conhecimento...</h3>
+                        <p className="text-muted-foreground text-lg">Nossa IA está lendo seus documentos agora mesmo.</p>
                       </div>
                     )}
                     {markdown && (
@@ -206,7 +236,33 @@ const Index = () => {
           </main>
         </div>
 
-        <footer className="mt-24 border-t pt-12">
+        <footer className="mt-32 border-t pt-16 pb-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+            <div className="col-span-2 space-y-4">
+              <div className="flex items-center gap-2 font-black text-xl">
+                <FileUp size={20} className="text-primary" />
+                <span>DocMD</span>
+              </div>
+              <p className="text-muted-foreground max-w-sm">
+                A ferramenta de conversão mais poderosa e privada da web. 100% open-source e focada em performance.
+              </p>
+            </div>
+            <div className="space-y-4">
+              <h4 className="font-bold">Produto</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="#" className="hover:text-primary">Conversor</a></li>
+                <li><a href="#" className="hover:text-primary">OCR</a></li>
+                <li><a href="#" className="hover:text-primary">API</a></li>
+              </ul>
+            </div>
+            <div className="space-y-4">
+              <h4 className="font-bold">Legal</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="#" className="hover:text-primary">Privacidade</a></li>
+                <li><a href="#" className="hover:text-primary">Termos</a></li>
+              </ul>
+            </div>
+          </div>
           <MadeWithDyad />
         </footer>
       </div>
