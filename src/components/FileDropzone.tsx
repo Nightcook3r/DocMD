@@ -2,19 +2,18 @@
 
 import React, { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, FileText, AlertCircle, FileType } from 'lucide-react';
+import { Upload, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface FileDropzoneProps {
-  onFileSelect: (file: File) => void;
+  onFilesSelect: (files: File[]) => void;
   className?: string;
 }
 
-const FileDropzone = ({ onFileSelect, className }: FileDropzoneProps) => {
+const FileDropzone = ({ onFilesSelect, className }: FileDropzoneProps) => {
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (file) onFileSelect(file);
-  }, [onFileSelect]);
+    if (acceptedFiles.length > 0) onFilesSelect(acceptedFiles);
+  }, [onFilesSelect]);
 
   const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
     onDrop,
@@ -25,7 +24,7 @@ const FileDropzone = ({ onFileSelect, className }: FileDropzoneProps) => {
       'image/png': ['.png'],
       'image/jpeg': ['.jpg', '.jpeg'],
     },
-    multiple: false
+    multiple: true
   });
 
   return (
@@ -33,7 +32,7 @@ const FileDropzone = ({ onFileSelect, className }: FileDropzoneProps) => {
       <div
         {...getRootProps()}
         className={cn(
-          "relative group cursor-pointer rounded-2xl border-2 border-dashed p-12 transition-all duration-300 ease-in-out",
+          "relative group cursor-pointer rounded-2xl border-2 border-dashed p-16 transition-all duration-300 ease-in-out",
           isDragActive 
             ? "border-primary bg-primary/5 scale-[1.01]" 
             : "border-muted-foreground/20 hover:border-primary/50 hover:bg-muted/50"
@@ -42,17 +41,17 @@ const FileDropzone = ({ onFileSelect, className }: FileDropzoneProps) => {
         <input {...getInputProps()} />
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
           <div className={cn(
-            "p-4 rounded-full bg-primary/10 text-primary transition-transform duration-300",
+            "p-5 rounded-full bg-primary/10 text-primary transition-transform duration-300",
             isDragActive && "scale-110"
           )}>
-            <Upload size={32} />
+            <Upload size={40} />
           </div>
           <div className="space-y-2">
-            <p className="text-xl font-semibold tracking-tight">
-              {isDragActive ? "Solte o arquivo aqui" : "Arraste seu arquivo"}
+            <p className="text-2xl font-bold tracking-tight">
+              {isDragActive ? "Solte os arquivos" : "Arraste seus arquivos"}
             </p>
             <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-              Suporta HTML, PDF, Imagens (OCR) e arquivos de texto.
+              Selecione um ou vários arquivos (PDF, Imagens, HTML, TXT).
             </p>
           </div>
         </div>
@@ -61,7 +60,7 @@ const FileDropzone = ({ onFileSelect, className }: FileDropzoneProps) => {
       {fileRejections.length > 0 && (
         <div className="mt-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm flex items-center gap-2">
           <AlertCircle size={16} />
-          <span>Formato não suportado. Use PDF, Imagens, HTML ou TXT.</span>
+          <span>Alguns arquivos possuem formatos não suportados.</span>
         </div>
       )}
     </div>
