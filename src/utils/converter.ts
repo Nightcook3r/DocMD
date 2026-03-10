@@ -1,16 +1,31 @@
 import TurndownService from 'turndown';
 
-const turndownService = new TurndownService({
-  headingStyle: 'atx',
-  codeBlockStyle: 'fenced',
-});
+export interface ConverterOptions {
+  headingStyle?: 'atx' | 'setext';
+  hr?: string;
+  bullet?: '*' | '-' | '+';
+  codeBlockStyle?: 'fenced' | 'indented';
+  keepImages?: boolean;
+}
 
-export const convertToMarkdown = (content: string, type: string): string => {
+export const convertToMarkdown = (content: string, type: string, options: ConverterOptions = {}): string => {
+  const turndownService = new TurndownService({
+    headingStyle: options.headingStyle || 'atx',
+    codeBlockStyle: options.codeBlockStyle || 'fenced',
+    hr: options.hr || '---',
+    bullet: options.bullet || '*',
+  });
+
+  if (!options.keepImages) {
+    turndownService.remove('img');
+  }
+
   if (type.includes('html')) {
     return turndownService.turndown(content);
   }
-  // Se for texto simples ou código, apenas retorna o conteúdo (ou envolve em blocos de código se necessário)
-  return content;
+  
+  // Para texto simples, ainda passamos pelo turndown para garantir formatação básica
+  return turndownService.turndown(content);
 };
 
 export const downloadMarkdown = (content: string, filename: string) => {
