@@ -4,15 +4,18 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { 
   Bold, Italic, Link, List, ListOrdered, Quote, Code, 
-  Heading1, Heading2, Image as ImageIcon, Strikethrough 
+  Heading1, Heading2, Image as ImageIcon, Strikethrough,
+  Table, ListTree
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface MarkdownToolbarProps {
   onAction: (prefix: string, suffix: string) => void;
+  onInsertTOC: () => void;
+  onInsertTable: () => void;
 }
 
-const MarkdownToolbar = ({ onAction }: MarkdownToolbarProps) => {
+const MarkdownToolbar = ({ onAction, onInsertTOC, onInsertTable }: MarkdownToolbarProps) => {
   const tools = [
     { icon: <Heading1 size={16} />, label: "Título 1", prefix: "# ", suffix: "", shortcut: "H1" },
     { icon: <Heading2 size={16} />, label: "Título 2", prefix: "## ", suffix: "", shortcut: "H2" },
@@ -46,6 +49,26 @@ const MarkdownToolbar = ({ onAction }: MarkdownToolbarProps) => {
           </TooltipContent>
         </Tooltip>
       ))}
+      
+      <div className="w-px h-4 bg-border mx-1" />
+      
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md" onClick={onInsertTOC}>
+            <ListTree size={16} className="text-primary" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="text-[10px] font-bold uppercase tracking-wider">Gerar Sumário</TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md" onClick={onInsertTable}>
+            <Table size={16} className="text-primary" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="text-[10px] font-bold uppercase tracking-wider">Inserir Tabela</TooltipContent>
+      </Tooltip>
     </div>
   );
 };

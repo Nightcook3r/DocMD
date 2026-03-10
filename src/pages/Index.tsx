@@ -16,6 +16,7 @@ import { Sparkles, Loader2, History, FileUp, Zap, Shield, Globe, Archive } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showError, showSuccess } from '@/utils/toast';
 import { Button } from '@/components/ui/button';
+import confetti from 'canvas-confetti';
 
 const Index = () => {
   const [markdown, setMarkdown] = useState<string>(() => localStorage.getItem('docmd_draft') || '');
@@ -37,13 +38,11 @@ const Index = () => {
   
   const { history, addToHistory, removeFromHistory, clearHistory } = useHistory();
 
-  // Auto-save effect
   useEffect(() => {
     localStorage.setItem('docmd_draft', markdown);
     localStorage.setItem('docmd_filename', fileName);
   }, [markdown, fileName]);
 
-  // Settings persistence effect
   useEffect(() => {
     localStorage.setItem('docmd_settings', JSON.stringify(settings));
     localStorage.setItem('docmd_ocr_lang', ocrLang);
@@ -85,13 +84,18 @@ const Index = () => {
           setFileName(file.name.replace(/\.[^/.]+$/, "") + ".md");
         }
       } catch (error) {
-        console.error(error);
         updateQueueStatus(queueId, 'error', 0);
         showError(`Erro ao processar ${file.name}`);
       }
     }
     
     if (files.length > 1) {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#3b82f6', '#2563eb', '#1d4ed8']
+      });
       showSuccess(`${files.length} arquivos processados!`);
     }
   };
@@ -124,7 +128,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background transition-colors duration-500">
-      {/* Top Navigation */}
       <nav className="border-b bg-background/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3 group cursor-pointer" onClick={() => { setMarkdown(''); setFileName('documento.md'); setActiveTab('converter'); }}>
@@ -133,28 +136,18 @@ const Index = () => {
             </div>
             <span className="font-black text-2xl tracking-tighter">Doc<span className="text-primary">MD</span></span>
           </div>
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
-          </div>
+          <div className="flex items-center gap-4"><ThemeToggle /></div>
         </div>
       </nav>
 
       <div className="max-w-7xl mx-auto px-6 py-16 md:py-24">
-        {/* Hero Section */}
         {!markdown && !isAnyProcessing && (
           <div className="text-center space-y-8 mb-20 animate-in fade-in slide-in-from-top-8 duration-1000">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest border border-primary/20">
-              <Sparkles size={14} className="animate-pulse" />
-              <span>Inteligência Artificial Integrada</span>
+              <Sparkles size={14} className="animate-pulse" /><span>Inteligência Artificial Integrada</span>
             </div>
-            <h1 className="text-5xl md:text-8xl font-black tracking-tight text-foreground leading-[0.9]">
-              Documentos para <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-600">Markdown Puro.</span>
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              A ferramenta definitiva para desenvolvedores e escritores. Converta PDFs complexos, imagens e HTML em Markdown limpo em segundos.
-            </p>
-            
+            <h1 className="text-5xl md:text-8xl font-black tracking-tight text-foreground leading-[0.9]">Documentos para <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-600">Markdown Puro.</span></h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">A ferramenta definitiva para desenvolvedores e escritores. Converta PDFs complexos, imagens e HTML em Markdown limpo em segundos.</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto pt-8">
               {[
                 { icon: <Zap className="text-yellow-500" />, title: "Ultra Rápido", desc: "Processamento local instantâneo." },
@@ -172,73 +165,28 @@ const Index = () => {
         )}
 
         <div className="flex flex-col lg:flex-row gap-12 items-start">
-          {/* Sidebar */}
           <aside className="w-full lg:w-80 space-y-8 shrink-0 sticky top-32">
-            <ConversionSettings 
-              ocrLang={ocrLang} 
-              onOcrLangChange={setOcrLang}
-              settings={settings}
-              onSettingsChange={setSettings}
-            />
-            
+            <ConversionSettings ocrLang={ocrLang} onOcrLangChange={setOcrLang} settings={settings} onSettingsChange={setSettings} />
             <div className="space-y-4">
               {hasCompletedFiles && (
-                <Button 
-                  onClick={handleBatchDownload}
-                  className="w-full gap-2 h-12 rounded-2xl font-bold shadow-lg shadow-primary/10"
-                  variant="secondary"
-                >
-                  <Archive size={18} />
-                  Baixar Tudo (ZIP)
+                <Button onClick={handleBatchDownload} className="w-full gap-2 h-12 rounded-2xl font-bold shadow-lg shadow-primary/10" variant="secondary">
+                  <Archive size={18} /> Baixar Tudo (ZIP)
                 </Button>
               )}
-              
-              <ProcessingQueue 
-                queue={processingQueue} 
-                onClear={() => setProcessingQueue([])}
-                onViewResult={(res, name) => { setMarkdown(res); setFileName(name.endsWith('.md') ? name : name + '.md'); }}
-              />
+              <ProcessingQueue queue={processingQueue} onClear={() => setProcessingQueue([])} onViewResult={(res, name) => { setMarkdown(res); setFileName(name.endsWith('.md') ? name : name + '.md'); }} />
             </div>
-
-            {history.length > 0 && (
-              <div className="p-8 rounded-3xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/10 space-y-4 relative overflow-hidden group">
-                <div className="absolute -right-4 -bottom-4 text-primary/5 group-hover:scale-110 transition-transform duration-700">
-                  <Zap size={120} />
-                </div>
-                <p className="text-xs font-black text-primary uppercase tracking-[0.2em]">Sua Produtividade</p>
-                <div className="grid grid-cols-2 gap-6 pt-2 relative z-10">
-                  <div>
-                    <p className="text-3xl font-black">{history.length}</p>
-                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Arquivos</p>
-                  </div>
-                  <div>
-                    <p className="text-3xl font-black">
-                      {Math.round(history.reduce((acc, curr) => acc + curr.content.length, 0) / 1000)}k
-                    </p>
-                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Caracteres</p>
-                  </div>
-                </div>
-              </div>
-            )}
           </aside>
 
-          {/* Main Content */}
           <main className="flex-1 w-full min-w-0">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="inline-flex h-14 items-center justify-center rounded-2xl bg-muted/50 p-1.5 text-muted-foreground mb-10 border">
-                <TabsTrigger value="converter" className="rounded-xl px-8 py-2.5 text-sm font-bold transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xl gap-2">
-                  <FileUp size={18} /> Conversor
-                </TabsTrigger>
-                <TabsTrigger value="history" className="rounded-xl px-8 py-2.5 text-sm font-bold transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xl gap-2">
-                  <History size={18} /> Histórico
-                </TabsTrigger>
+                <TabsTrigger value="converter" className="rounded-xl px-8 py-2.5 text-sm font-bold transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xl gap-2"><FileUp size={18} /> Conversor</TabsTrigger>
+                <TabsTrigger value="history" className="rounded-xl px-8 py-2.5 text-sm font-bold transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xl gap-2"><History size={18} /> Histórico</TabsTrigger>
               </TabsList>
 
               <TabsContent value="converter" className="mt-0 focus-visible:outline-none">
                 {!markdown && !isAnyProcessing ? (
-                  <div className="animate-in zoom-in-95 duration-500">
-                    <FileDropzone onFilesSelect={handleFilesSelect} />
-                  </div>
+                  <div className="animate-in zoom-in-95 duration-500"><FileDropzone onFilesSelect={handleFilesSelect} /></div>
                 ) : (
                   <div className="space-y-8">
                     {isAnyProcessing && !markdown && (
@@ -264,12 +212,7 @@ const Index = () => {
               </TabsContent>
 
               <TabsContent value="history" className="mt-0 focus-visible:outline-none">
-                <HistoryList 
-                  items={history} 
-                  onSelect={handleSelectFromHistory}
-                  onDelete={removeFromHistory}
-                  onClear={clearHistory}
-                />
+                <HistoryList items={history} onSelect={handleSelectFromHistory} onDelete={removeFromHistory} onClear={clearHistory} />
               </TabsContent>
             </Tabs>
           </main>
@@ -278,28 +221,8 @@ const Index = () => {
         <footer className="mt-32 border-t pt-16 pb-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
             <div className="col-span-2 space-y-4">
-              <div className="flex items-center gap-2 font-black text-xl">
-                <FileUp size={20} className="text-primary" />
-                <span>DocMD</span>
-              </div>
-              <p className="text-muted-foreground max-w-sm">
-                A ferramenta de conversão mais poderosa e privada da web. 100% open-source e focada em performance.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <h4 className="font-bold">Produto</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-primary">Conversor</a></li>
-                <li><a href="#" className="hover:text-primary">OCR</a></li>
-                <li><a href="#" className="hover:text-primary">API</a></li>
-              </ul>
-            </div>
-            <div className="space-y-4">
-              <h4 className="font-bold">Legal</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-primary">Privacidade</a></li>
-                <li><a href="#" className="hover:text-primary">Termos</a></li>
-              </ul>
+              <div className="flex items-center gap-2 font-black text-xl"><FileUp size={20} className="text-primary" /><span>DocMD</span></div>
+              <p className="text-muted-foreground max-w-sm">A ferramenta de conversão mais poderosa e privada da web. 100% open-source e focada em performance.</p>
             </div>
           </div>
           <MadeWithDyad />

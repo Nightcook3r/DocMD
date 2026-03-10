@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { getDocumentStats } from '@/utils/stats';
 import { marked } from 'marked';
 import { formatMarkdown, downloadHtml } from '@/utils/converter';
+import { generateTOC, generateMarkdownTable } from '@/utils/toc';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface MarkdownEditorProps {
@@ -53,37 +54,45 @@ const MarkdownEditor = ({ content, fileName, onFileNameChange, onChange, onDownl
     }, 0);
   };
 
+  const handleInsertTOC = () => {
+    const toc = generateTOC(content);
+    if (!toc) {
+      showError("Nenhum título encontrado para gerar o sumário.");
+      return;
+    }
+    onChange(toc + content);
+    showSuccess("Sumário gerado no topo!");
+  };
+
+  const handleInsertTable = () => {
+    const table = generateMarkdownTable(3, 3);
+    handleAction(table, "");
+  };
+
   const handleFormat = async () => {
     setIsFormatting(true);
     try {
       const formatted = await formatMarkdown(content);
       onChange(formatted);
-      showSuccess("Markdown formatado com sucesso!");
+      showSuccess("Markdown formatado!");
     } catch (e) {
-      showError("Erro ao formatar documento.");
+      showError("Erro ao formatar.");
     } finally {
       setIsFormatting(false);
     }
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   const handleCopy = async (type: 'md' | 'html') => {
     let textToCopy = content;
-    if (type === 'html') {
-      textToCopy = await marked.parse(content);
-    }
+    if (type === 'html') textToCopy = await marked.parse(content);
     await navigator.clipboard.writeText(textToCopy);
     setCopied(type);
-    showSuccess(type === 'md' ? "Markdown copiado!" : "HTML copiado!");
+    showSuccess("Copiado!");
     setTimeout(() => setCopied(null), 2000);
   };
 
   return (
     <div className="w-full space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700 print:m-0">
-      {/* Toolbar Superior - Escondida na impressão */}
       <div className="flex flex-col lg:flex-row items-center justify-between bg-card border rounded-2xl p-3 gap-4 shadow-sm print:hidden">
         <div className="flex items-center gap-3 w-full lg:w-auto">
           <div className="relative flex-1 lg:w-64">
@@ -105,58 +114,37 @@ const MarkdownEditor = ({ content, fileName, onFileNameChange, onChange, onDownl
         </div>
 
         <div className="flex flex-wrap gap-2 w-full lg:w-auto justify-end">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleFormat} 
-            disabled={isFormatting}
-            className="gap-2 h-9 rounded-xl text-xs font-bold text-primary border-primary/20 hover:bg-primary/5"
-          >
-            <Sparkles size={14} className={cn(isFormatting && "animate-spin")} />
-            Limpar
+          <Button variant="outline" size="sm" onClick={handleFormat} disabled={isFormatting} className="gap-2 h-9 rounded-xl text-xs font-bold text-primary border-primary/20 hover:bg-primary/5">
+            <Sparkles size={14} className={cn(isFormatting && "animate-spin")} /> Limpar
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="primary" size="sm" className="gap-2 h-9 rounded-xl text-xs font-bold shadow-lg shadow-primary/20">
-                <Download size={14} />
-                Exportar
+                <Download size={14} /> Exportar
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="rounded-xl p-2">
-              <DropdownMenuItem onClick={onDownload} className="rounded-lg gap-2 cursor-pointer">
-                <FileCode size={14} /> Baixar .md
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => downloadHtml(content, fileName)} className="rounded-lg gap-2 cursor-pointer">
-                <FileCode size={14} className="text-orange-500" /> Baixar .html
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handlePrint} className="rounded-lg gap-2 cursor-pointer">
-                <Printer size={14} className="text-blue-500" /> Imprimir / PDF
-              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onDownload} className="rounded-lg gap-2 cursor-pointer"><FileCode size={14} /> Baixar .md</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => downloadHtml(content, fileName)} className="rounded-lg gap-2 cursor-pointer"><FileCode size={14} className="text-orange-500" /> Baixar .html</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => window.print()} className="rounded-lg gap-2 cursor-pointer"><Printer size={14} className="text-blue-500" /> Imprimir / PDF</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
           <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
-          
           <Button variant="ghost" size="sm" onClick={() => handleCopy('md')} className="h-9 px-3 rounded-xl text-xs font-bold">
             {copied === 'md' ? <Check size={14} /> : <Copy size={14} />}
           </Button>
-
           <Button variant="ghost" size="sm" onClick={onClear} className="h-9 w-9 p-0 text-destructive hover:bg-destructive/10 rounded-xl">
             <Trash2 size={16} />
           </Button>
         </div>
       </div>
       
-      {/* Área do Editor/Preview */}
-      <div className={cn(
-        "grid gap-4 transition-all duration-500",
-        view === "split" ? "lg:grid-cols-2" : "grid-cols-1",
-        "print:block print:border-none"
-      )}>
+      <div className={cn("grid gap-4 transition-all duration-500", view === "split" ? "lg:grid-cols-2" : "grid-cols-1", "print:block print:border-none")}>
         {(view === "edit" || view === "split") && (
           <div className="relative group flex flex-col border-2 rounded-2xl bg-card/50 backdrop-blur-sm overflow-hidden print:hidden">
-            <MarkdownToolbar onAction={handleAction} />
+            <MarkdownToolbar onAction={handleAction} onInsertTOC={handleInsertTOC} onInsertTable={handleInsertTable} />
             <Textarea
               ref={textareaRef}
               value={content}
@@ -166,7 +154,6 @@ const MarkdownEditor = ({ content, fileName, onFileNameChange, onChange, onDownl
             />
           </div>
         )}
-        
         {(view === "preview" || view === "split") && (
           <div className="relative group print:m-0">
             <div className="min-h-[600px] border-2 rounded-2xl bg-card overflow-hidden print:border-none print:min-h-0">
@@ -176,25 +163,14 @@ const MarkdownEditor = ({ content, fileName, onFileNameChange, onChange, onDownl
         )}
       </div>
 
-      {/* Footer com Estatísticas - Escondido na impressão */}
       <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-3 bg-muted/30 rounded-2xl border text-[10px] font-bold uppercase tracking-widest text-muted-foreground print:hidden">
         <div className="flex flex-wrap gap-6">
-          <div className="flex items-center gap-2">
-            <Type size={14} className="text-primary" />
-            <span>{stats.characters} Caracteres</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <AlignLeft size={14} className="text-primary" />
-            <span>{stats.words} Palavras</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Clock size={14} className="text-primary" />
-            <span>{stats.readingTime} min de leitura</span>
-          </div>
+          <div className="flex items-center gap-2"><Type size={14} className="text-primary" /><span>{stats.characters} Caracteres</span></div>
+          <div className="flex items-center gap-2"><AlignLeft size={14} className="text-primary" /><span>{stats.words} Palavras</span></div>
+          <div className="flex items-center gap-2"><Clock size={14} className="text-primary" /><span>{stats.readingTime} min de leitura</span></div>
         </div>
         <div className="flex items-center gap-2 bg-background px-3 py-1 rounded-full border shadow-sm">
-          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          <span>Pronto para exportar</span>
+          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" /><span>Pronto para exportar</span>
         </div>
       </div>
     </div>
