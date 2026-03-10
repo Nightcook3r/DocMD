@@ -4,17 +4,44 @@ import React, { useState } from 'react';
 import FileDropzone from '@/components/FileDropzone';
 import MarkdownEditor from '@/components/MarkdownEditor';
 import { convertToMarkdown, downloadMarkdown } from '@/utils/converter';
+import { extractTextFromPDF } from '@/utils/pdf-parser';
+import { extractTextFromImage } from '@/utils/ocr-parser';
 import { MadeWithDyad } from "@/components/made-with-dyad";
-import { FileCode2, Sparkles } from 'lucide-react';
+import { FileCode2, Sparkles, Loader2, FileSearch, Image as ImageIcon } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { showError } from '@/utils/toast';
 
 const Index = () => {
   const [markdown, setMarkdown] = useState<string>('');
   const [fileName, setFileName] = useState<string>('documento.md');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
 
-  const handleFileSelect = (file: File, content: string) => {
-    const converted = convertToMarkdown(content, file.type);
-    setMarkdown(converted);
+  const handleFileSelect = async (file: File) => {
+    setIsProcessing(true);
+    setProgress(0);
     setFileName(file.name);
+
+    try {
+      let content = '';
+      
+      if (file.type === 'application/pdf') {
+        content = await extractTextFromPDF(file);
+      } else if (file.type.startsWith('image/')) {
+        content = await extractTextFromImage(file, (p) => setProgress(p));
+      } else {
+        content = await file.text();
+      }
+
+      const converted = convertToMarkdown(content, file.type);
+      setMarkdown(converted);
+    } catch (error) {
+      console.error(error);
+      showError("Erro ao processar o arquivo. Tente novamente.");
+    } finally {
+      setIsProcessing(false);
+      setProgress(0);
+    }
   };
 
   const handleDownload = () => {
@@ -34,19 +61,32 @@ const Index = () => {
         <div className="text-center space-y-4 mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-2">
             <Sparkles size={14} />
-            <span>Conversor Inteligente</span>
+            <span>Conversor com IA & OCR</span>
           </div>
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-foreground">
-            Transforme arquivos em <span className="text-primary">Markdown</span>
+            Tudo para <span className="text-primary">Markdown</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Converta HTML, textos e códigos para o formato Markdown de forma instantânea e elegante.
+            Extraia texto de PDFs, imagens e HTML instantaneamente.
           </p>
         </div>
 
         {/* Main Content */}
         <div className="space-y-8">
-          {!markdown ? (
+          {isProcessing ? (
+            <div className="flex flex-col items-center justify-center p-20 space-y-6 bg-card border rounded-2xl animate-pulse">
+              <Loader2 className="w-12 h-12 text-primary animate-spin" />
+              <div className="text-center space-y-2 w-full max-w-xs">
+                <p className="font-medium">Processando seu arquivo...</p>
+                {progress > 0 && (
+                  <>
+                    <Progress value={progress} className="h-2" />
+                    <p className="text-xs text-muted-foreground">{progress}% concluído</p>
+                  </>
+                )}
+              </div>
+            </div>
+          ) : !markdown ? (
             <FileDropzone onFileSelect={handleFileSelect} />
           ) : (
             <MarkdownEditor 
@@ -58,12 +98,12 @@ const Index = () => {
           )}
 
           {/* Features Info */}
-          {!markdown && (
+          {!markdown && !isProcessing && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
               {[
-                { title: "HTML para MD", desc: "Transforme páginas web complexas em Markdown limpo.", icon: <FileCode2 className="text-blue-500" /> },
-                { title: "Preservação", desc: "Mantém links, tabelas e formatação original.", icon: <Sparkles className="text-amber-500" /> },
-                { title: "Privacidade", desc: "Tudo é processado localmente no seu navegador.", icon: <Sparkles className="text-green-500" /> }
+                { title: "PDF para MD", desc: "Extração de texto limpa de documentos PDF.", icon: <FileSearch className="text-blue-500" /> },
+                { title: "OCR em Imagens", desc: "Transforme fotos de documentos em texto editável.", icon: <ImageIcon className="text-purple-500" /> },
+                { title: "HTML & Web", desc: "Converta código HTML em Markdown formatado.", icon: <FileCode2 className="text-amber-500" /> }
               ].map((feature, i) => (
                 <div key={i} className="p-6 rounded-2xl bg-card border shadow-sm hover:shadow-md transition-shadow">
                   <div className="mb-4">{feature.icon}</div>

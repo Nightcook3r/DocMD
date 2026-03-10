@@ -2,25 +2,18 @@
 
 import React, { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, FileText, AlertCircle } from 'lucide-react';
+import { Upload, FileText, AlertCircle, FileType } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface FileDropzoneProps {
-  onFileSelect: (file: File, content: string) => void;
+  onFileSelect: (file: File) => void;
   className?: string;
 }
 
 const FileDropzone = ({ onFileSelect, className }: FileDropzoneProps) => {
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const content = reader.result as string;
-      onFileSelect(file, content);
-    };
-    reader.readAsText(file);
+    if (file) onFileSelect(file);
   }, [onFileSelect]);
 
   const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
@@ -28,7 +21,9 @@ const FileDropzone = ({ onFileSelect, className }: FileDropzoneProps) => {
     accept: {
       'text/html': ['.html', '.htm'],
       'text/plain': ['.txt', '.md'],
-      'text/markdown': ['.md'],
+      'application/pdf': ['.pdf'],
+      'image/png': ['.png'],
+      'image/jpeg': ['.jpg', '.jpeg'],
     },
     multiple: false
   });
@@ -57,7 +52,7 @@ const FileDropzone = ({ onFileSelect, className }: FileDropzoneProps) => {
               {isDragActive ? "Solte o arquivo aqui" : "Arraste seu arquivo"}
             </p>
             <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-              Suporta HTML, TXT e arquivos de texto simples para conversão instantânea.
+              Suporta HTML, PDF, Imagens (OCR) e arquivos de texto.
             </p>
           </div>
         </div>
@@ -66,7 +61,7 @@ const FileDropzone = ({ onFileSelect, className }: FileDropzoneProps) => {
       {fileRejections.length > 0 && (
         <div className="mt-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm flex items-center gap-2">
           <AlertCircle size={16} />
-          <span>Tipo de arquivo não suportado. Tente HTML ou TXT.</span>
+          <span>Formato não suportado. Use PDF, Imagens, HTML ou TXT.</span>
         </div>
       )}
     </div>
