@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Download, Copy, Check, Trash2, Eye, Edit3, Columns, FileEdit, Clock, Type, AlignLeft } from 'lucide-react';
 import { showSuccess } from '@/utils/toast';
 import MarkdownPreview from './MarkdownPreview';
+import MarkdownToolbar from './MarkdownToolbar';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from '@/lib/utils';
 import { getDocumentStats } from '@/utils/stats';
@@ -24,7 +25,48 @@ interface MarkdownEditorProps {
 const MarkdownEditor = ({ content, fileName, onFileNameChange, onChange, onDownload, onClear }: MarkdownEditorProps) => {
   const [copied, setCopied] = useState<'md' | 'html' | null>(null);
   const [view, setView] = useState<"edit" | "preview" | "split">("edit");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const stats = getDocumentStats(content);
+
+  const handleAction = (prefix: string, suffix: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = content.substring(start, end);
+    const before = content.substring(0, start);
+    const after = content.substring(end);
+
+    const newContent = `${before}${prefix}${selectedText}${suffix}${after}`;
+    onChange(newContent);
+
+    // Reposicionar cursor
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(
+        start + prefix.length,
+        end + prefix.length
+      );
+    }, 0);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey)) {
+        switch (e.key.toLowerCase()) {
+          case 'b': e.preventDefault(); handleAction('**', '**'); break;
+          case 'i': e.preventDefault(); handleAction('_', '_'); break;
+          case 'k': e.preventDefault(); handleAction('[', '](url)'); break;
+          case 'e': e.preventDefault(); handleAction('`', '`'); break;
+          case 's': e.preventDefault(); onDownload(); break;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [content, onChange, onDownload]);
 
   const handleCopy = async (type: 'md' | 'html') => {
     let textToCopy = content;
@@ -87,12 +129,14 @@ const MarkdownEditor = ({ content, fileName, onFileNameChange, onChange, onDownl
         view === "split" ? "lg:grid-cols-2" : "grid-cols-1"
       )}>
         {(view === "edit" || view === "split") && (
-          <div className="relative group">
+          <div className="relative group flex flex-col border-2 rounded-2xl bg-card/50 backdrop-blur-sm overflow-hidden">
+            <MarkdownToolbar onAction={handleAction} />
             <Textarea
+              ref={textareaRef}
               value={content}
               onChange={(e) => onChange(e.target.value)}
               placeholder="O Markdown convertido aparecerá aqui..."
-              className="min-h-[600px] font-mono text-sm p-8 leading-relaxed resize-none focus-visible:ring-primary/20 border-2 rounded-2xl bg-card/50 backdrop-blur-sm"
+              className="min-h-[600px] font-mono text-sm p-8 leading-relaxed resize-none focus-visible:ring-0 border-none bg-transparent"
             />
           </div>
         )}
