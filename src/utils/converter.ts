@@ -9,12 +9,15 @@ export interface ConverterOptions {
 }
 
 export const convertToMarkdown = (content: string, type: string, options: ConverterOptions = {}): string => {
-  const turndownService = new TurndownService({
+  // Usamos 'as any' para evitar erro de tipagem se a definição do Turndown estiver incompleta
+  const turndownOptions: any = {
     headingStyle: options.headingStyle || 'atx',
     codeBlockStyle: options.codeBlockStyle || 'fenced',
     hr: options.hr || '---',
     bullet: options.bullet || '*',
-  });
+  };
+
+  const turndownService = new TurndownService(turndownOptions);
 
   if (!options.keepImages) {
     turndownService.remove('img');
@@ -24,7 +27,6 @@ export const convertToMarkdown = (content: string, type: string, options: Conver
     return turndownService.turndown(content);
   }
   
-  // Para texto simples, ainda passamos pelo turndown para garantir formatação básica
   return turndownService.turndown(content);
 };
 
