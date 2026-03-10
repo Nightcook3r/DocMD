@@ -3,19 +3,25 @@
 import React, { useState } from 'react';
 import FileDropzone from '@/components/FileDropzone';
 import MarkdownEditor from '@/components/MarkdownEditor';
+import HistoryList from '@/components/HistoryList';
 import { convertToMarkdown, downloadMarkdown } from '@/utils/converter';
 import { extractTextFromPDF } from '@/utils/pdf-parser';
 import { extractTextFromImage } from '@/utils/ocr-parser';
+import { useHistory, HistoryItem } from '@/hooks/use-history';
 import { MadeWithDyad } from "@/components/made-with-dyad";
-import { FileCode2, Sparkles, Loader2, FileSearch, Image as ImageIcon } from 'lucide-react';
+import { Sparkles, Loader2, History, FileUp } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
-import { showError } from '@/utils/toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { showError, showSuccess } from '@/utils/toast';
 
 const Index = () => {
   const [markdown, setMarkdown] = useState<string>('');
   const [fileName, setFileName] = useState<string>('documento.md');
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [activeTab, setActiveTab] = useState("converter");
+  
+  const { history, addToHistory, removeFromHistory, clearHistory } = useHistory();
 
   const handleFileSelect = async (file: File) => {
     setIsProcessing(true);
@@ -26,7 +32,7 @@ const Index = () => {
       let content = '';
       
       if (file.type === 'application/pdf') {
-        content = await extractTextFromPDF(file);
+        content = await extractTextFromPDF(file, (p) => setProgress(p));
       } else if (file.type.startsWith('image/')) {
         content = await extractTextFromImage(file, (p) => setProgress(p));
       } else {
@@ -35,6 +41,8 @@ const Index = () => {
 
       const converted = convertToMarkdown(content, file.type);
       setMarkdown(converted);
+      addToHistory(file.name, converted, file.type);
+      showSuccess("Arquivo processado e salvo no histórico!");
     } catch (error) {
       console.error(error);
       showError("Erro ao processar o arquivo. Tente novamente.");
@@ -42,6 +50,12 @@ const Index = () => {
       setIsProcessing(false);
       setProgress(0);
     }
+  };
+
+  const handleSelectFromHistory = (item: HistoryItem) => {
+    setMarkdown(item.content);
+    setFileName(item.name);
+    setActiveTab("converter");
   };
 
   const handleDownload = () => {
@@ -61,59 +75,57 @@ const Index = () => {
         <div className="text-center space-y-4 mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-2">
             <Sparkles size={14} />
-            <span>Conversor com IA & OCR</span>
+            <span>Conversor com OCR Avançado</span>
           </div>
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-foreground">
-            Tudo para <span className="text-primary">Markdown</span>
+            Arquivos para <span className="text-primary">Markdown</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Extraia texto de PDFs, imagens e HTML instantaneamente.
+            Converta PDFs (mesmo com imagens), fotos e HTML com salvamento local automático.
           </p>
         </div>
 
-        {/* Main Content */}
-        <div className="space-y-8">
-          {isProcessing ? (
-            <div className="flex flex-col items-center justify-center p-20 space-y-6 bg-card border rounded-2xl animate-pulse">
-              <Loader2 className="w-12 h-12 text-primary animate-spin" />
-              <div className="text-center space-y-2 w-full max-w-xs">
-                <p className="font-medium">Processando seu arquivo...</p>
-                {progress > 0 && (
-                  <>
-                    <Progress value={progress} className="h-2" />
-                    <p className="text-xs text-muted-foreground">{progress}% concluído</p>
-                  </>
-                )}
-              </div>
-            </div>
-          ) : !markdown ? (
-            <FileDropzone onFileSelect={handleFileSelect} />
-          ) : (
-            <MarkdownEditor 
-              content={markdown} 
-              onChange={setMarkdown}
-              onDownload={handleDownload}
-              onClear={handleClear}
-            />
-          )}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-8 max-w-[400px] mx-auto">
+            <TabsTrigger value="converter" className="gap-2">
+              <FileUp size={16} /> Conversor
+            </TabsTrigger>
+            <TabsTrigger value="history" className="gap-2">
+              <History size={16} /> Histórico
+            </TabsTrigger>
+          </TabsList>
 
-          {/* Features Info */}
-          {!markdown && !isProcessing && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-              {[
-                { title: "PDF para MD", desc: "Extração de texto limpa de documentos PDF.", icon: <FileSearch className="text-blue-500" /> },
-                { title: "OCR em Imagens", desc: "Transforme fotos de documentos em texto editável.", icon: <ImageIcon className="text-purple-500" /> },
-                { title: "HTML & Web", desc: "Converta código HTML em Markdown formatado.", icon: <FileCode2 className="text-amber-500" /> }
-              ].map((feature, i) => (
-                <div key={i} className="p-6 rounded-2xl bg-card border shadow-sm hover:shadow-md transition-shadow">
-                  <div className="mb-4">{feature.icon}</div>
-                  <h3 className="font-semibold mb-2">{feature.title}</h3>
-                  <p className="text-sm text-muted-foreground">{feature.desc}</p>
+          <TabsContent value="converter" className="space-y-8">
+            {isProcessing ? (
+              <div className="flex flex-col items-center justify-center p-20 space-y-6 bg-card border rounded-2xl shadow-sm">
+                <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                <div className="text-center space-y-2 w-full max-w-xs">
+                  <p className="font-medium">Processando com OCR...</p>
+                  <Progress value={progress} className="h-2" />
+                  <p className="text-xs text-muted-foreground">{progress}% concluído</p>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              </div>
+            ) : !markdown ? (
+              <FileDropzone onFileSelect={handleFileSelect} />
+            ) : (
+              <MarkdownEditor 
+                content={markdown} 
+                onChange={setMarkdown}
+                onDownload={handleDownload}
+                onClear={handleClear}
+              />
+            )}
+          </TabsContent>
+
+          <TabsContent value="history">
+            <HistoryList 
+              items={history} 
+              onSelect={handleSelectFromHistory}
+              onDelete={removeFromHistory}
+              onClear={clearHistory}
+            />
+          </TabsContent>
+        </Tabs>
 
         <footer className="mt-20">
           <MadeWithDyad />
