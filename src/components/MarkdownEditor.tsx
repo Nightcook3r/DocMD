@@ -3,42 +3,36 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Download, Copy, Check, Trash2, Eye, Edit3, Columns, Code } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Download, Copy, Check, Trash2, Eye, Edit3, Columns, FileEdit, Clock, Type, AlignLeft } from 'lucide-react';
 import { showSuccess } from '@/utils/toast';
 import MarkdownPreview from './MarkdownPreview';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from '@/lib/utils';
+import { getDocumentStats } from '@/utils/stats';
+import { marked } from 'marked';
 
 interface MarkdownEditorProps {
   content: string;
+  fileName: string;
+  onFileNameChange: (name: string) => void;
   onChange: (val: string) => void;
   onDownload: () => void;
   onClear: () => void;
 }
 
-const MarkdownEditor = ({ content, onChange, onDownload, onClear }: MarkdownEditorProps) => {
+const MarkdownEditor = ({ content, fileName, onFileNameChange, onChange, onDownload, onClear }: MarkdownEditorProps) => {
   const [copied, setCopied] = useState<'md' | 'html' | null>(null);
   const [view, setView] = useState<"edit" | "preview" | "split">("edit");
+  const stats = getDocumentStats(content);
 
-  // Ajusta a visualização padrão baseada no tamanho da tela
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 1024 && view !== "split") {
-        // Opcional: auto-ativar split em telas grandes
-      }
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [view]);
-
-  const handleCopy = (type: 'md' | 'html') => {
-    if (type === 'md') {
-      navigator.clipboard.writeText(content);
-    } else {
-      // Simples conversão básica para HTML (poderia usar uma lib como 'marked' se necessário)
-      // Por enquanto, copiaremos o MD mas o botão está preparado
-      navigator.clipboard.writeText(content);
+  const handleCopy = async (type: 'md' | 'html') => {
+    let textToCopy = content;
+    if (type === 'html') {
+      textToCopy = await marked.parse(content);
     }
+    
+    await navigator.clipboard.writeText(textToCopy);
     setCopied(type);
     showSuccess(type === 'md' ? "Markdown copiado!" : "HTML copiado!");
     setTimeout(() => setCopied(null), 2000);
@@ -46,29 +40,39 @@ const MarkdownEditor = ({ content, onChange, onDownload, onClear }: MarkdownEdit
 
   return (
     <div className="w-full space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* Toolbar Superior */}
       <div className="flex flex-col lg:flex-row items-center justify-between bg-card border rounded-2xl p-3 gap-4 shadow-sm">
-        <Tabs value={view} onValueChange={(v) => setView(v as any)} className="w-full lg:w-auto">
-          <TabsList className="grid w-full grid-cols-3 lg:w-[300px] bg-muted/50">
-            <TabsTrigger value="edit" className="gap-2 text-xs">
-              <Edit3 size={14} /> Editar
-            </TabsTrigger>
-            <TabsTrigger value="preview" className="gap-2 text-xs">
-              <Eye size={14} /> Ver
-            </TabsTrigger>
-            <TabsTrigger value="split" className="gap-2 text-xs hidden lg:flex">
-              <Columns size={14} /> Split
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex items-center gap-3 w-full lg:w-auto">
+          <div className="relative flex-1 lg:w-64">
+            <FileEdit className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={14} />
+            <Input 
+              value={fileName}
+              onChange={(e) => onFileNameChange(e.target.value)}
+              className="pl-9 h-9 bg-muted/30 border-none focus-visible:ring-1 rounded-xl text-sm font-medium"
+              placeholder="Nome do arquivo..."
+            />
+          </div>
+          <Tabs value={view} onValueChange={(v) => setView(v as any)} className="hidden sm:block">
+            <TabsList className="bg-muted/50 h-9 p-1 rounded-xl">
+              <TabsTrigger value="edit" className="h-7 px-3 text-[10px] uppercase font-bold"><Edit3 size={12} className="mr-1"/> Edit</TabsTrigger>
+              <TabsTrigger value="preview" className="h-7 px-3 text-[10px] uppercase font-bold"><Eye size={12} className="mr-1"/> View</TabsTrigger>
+              <TabsTrigger value="split" className="h-7 px-3 text-[10px] uppercase font-bold hidden lg:flex"><Columns size={12} className="mr-1"/> Split</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
 
         <div className="flex flex-wrap gap-2 w-full lg:w-auto justify-end">
-          <Button variant="outline" size="sm" onClick={() => handleCopy('md')} className="gap-2 h-9 rounded-xl">
+          <Button variant="outline" size="sm" onClick={() => handleCopy('md')} className="gap-2 h-9 rounded-xl text-xs font-bold">
             {copied === 'md' ? <Check size={14} /> : <Copy size={14} />}
-            <span className="hidden sm:inline">Copiar MD</span>
+            MD
           </Button>
-          <Button variant="outline" size="sm" onClick={onDownload} className="gap-2 h-9 rounded-xl">
+          <Button variant="outline" size="sm" onClick={() => handleCopy('html')} className="gap-2 h-9 rounded-xl text-xs font-bold">
+            {copied === 'html' ? <Check size={14} /> : <Copy size={14} />}
+            HTML
+          </Button>
+          <Button variant="primary" size="sm" onClick={onDownload} className="gap-2 h-9 rounded-xl text-xs font-bold shadow-lg shadow-primary/20">
             <Download size={14} />
-            <span className="hidden sm:inline">Baixar</span>
+            Baixar
           </Button>
           <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
           <Button variant="ghost" size="sm" onClick={onClear} className="h-9 w-9 p-0 text-destructive hover:bg-destructive/10 rounded-xl">
@@ -77,6 +81,7 @@ const MarkdownEditor = ({ content, onChange, onDownload, onClear }: MarkdownEdit
         </div>
       </div>
       
+      {/* Área do Editor/Preview */}
       <div className={cn(
         "grid gap-4 transition-all duration-500",
         view === "split" ? "lg:grid-cols-2" : "grid-cols-1"
@@ -89,9 +94,6 @@ const MarkdownEditor = ({ content, onChange, onDownload, onClear }: MarkdownEdit
               placeholder="O Markdown convertido aparecerá aqui..."
               className="min-h-[600px] font-mono text-sm p-8 leading-relaxed resize-none focus-visible:ring-primary/20 border-2 rounded-2xl bg-card/50 backdrop-blur-sm"
             />
-            <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-               <span className="bg-muted px-2 py-1 rounded text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Editor</span>
-            </div>
           </div>
         )}
         
@@ -100,21 +102,29 @@ const MarkdownEditor = ({ content, onChange, onDownload, onClear }: MarkdownEdit
             <div className="min-h-[600px] border-2 rounded-2xl bg-card overflow-hidden">
               <MarkdownPreview content={content} />
             </div>
-            <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-               <span className="bg-primary/10 text-primary px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest">Preview</span>
-            </div>
           </div>
         )}
       </div>
 
-      <div className="flex items-center justify-between px-2 text-[10px] text-muted-foreground font-medium uppercase tracking-widest">
-        <div className="flex gap-4">
-          <span>{content.length} Caracteres</span>
-          <span>{content.split(/\s+/).filter(Boolean).length} Palavras</span>
+      {/* Footer com Estatísticas */}
+      <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-3 bg-muted/30 rounded-2xl border text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+        <div className="flex flex-wrap gap-6">
+          <div className="flex items-center gap-2">
+            <Type size={14} className="text-primary" />
+            <span>{stats.characters} Caracteres</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <AlignLeft size={14} className="text-primary" />
+            <span>{stats.words} Palavras</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Clock size={14} className="text-primary" />
+            <span>{stats.readingTime} min de leitura</span>
+          </div>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2 bg-background px-3 py-1 rounded-full border shadow-sm">
           <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          Sincronizado
+          <span>Pronto para exportar</span>
         </div>
       </div>
     </div>

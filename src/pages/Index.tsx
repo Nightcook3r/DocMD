@@ -65,7 +65,7 @@ const Index = () => {
         
         if (files.length === 1) {
           setMarkdown(converted);
-          setFileName(file.name);
+          setFileName(file.name.replace(/\.[^/.]+$/, "") + ".md");
         }
       } catch (error) {
         console.error(error);
@@ -87,7 +87,7 @@ const Index = () => {
 
   const handleSelectFromHistory = (item: HistoryItem) => {
     setMarkdown(item.content);
-    setFileName(item.name);
+    setFileName(item.name.endsWith('.md') ? item.name : item.name + '.md');
     setActiveTab("converter");
   };
 
@@ -160,7 +160,7 @@ const Index = () => {
             <ProcessingQueue 
               queue={processingQueue} 
               onClear={() => setProcessingQueue([])}
-              onViewResult={(res, name) => { setMarkdown(res); setFileName(name); }}
+              onViewResult={(res, name) => { setMarkdown(res); setFileName(name.endsWith('.md') ? name : name + '.md'); }}
             />
 
             {history.length > 0 && (
@@ -215,6 +215,8 @@ const Index = () => {
                     {markdown && (
                       <MarkdownEditor 
                         content={markdown} 
+                        fileName={fileName}
+                        onFileNameChange={setFileName}
                         onChange={setMarkdown}
                         onDownload={() => downloadMarkdown(markdown, fileName)}
                         onClear={() => { setMarkdown(''); setFileName('documento.md'); }}
