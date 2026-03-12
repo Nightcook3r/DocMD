@@ -7,12 +7,14 @@ import HistoryList from '@/components/HistoryList';
 import ProcessingQueue, { ProcessingFile } from '@/components/ProcessingQueue';
 import ConversionSettings, { MarkdownSettings } from '@/components/ConversionSettings';
 import ThemeToggle from '@/components/ThemeToggle';
+import Hero from '@/components/Hero';
+import HowItWorks from '@/components/HowItWorks';
 import { convertToMarkdown, downloadMarkdown, downloadBatchAsZip } from '@/utils/converter';
 import { extractTextFromPDF } from '@/utils/pdf-parser';
 import { extractTextFromImage } from '@/utils/ocr-parser';
 import { useHistory, HistoryItem } from '@/hooks/use-history';
 import { MadeWithDyad } from "@/components/made-with-dyad";
-import { Sparkles, Loader2, History, FileUp, Zap, Shield, Globe, Archive, MousePointer2, FileCode2, DownloadCloud } from 'lucide-react';
+import { Loader2, History, FileUp, Archive } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showError, showSuccess } from '@/utils/toast';
 import { Button } from '@/components/ui/button';
@@ -90,29 +92,18 @@ const Index = () => {
     }
     
     if (files.length > 1) {
-      confetti({
-        particleCount: 150,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#3b82f6', '#2563eb', '#1d4ed8']
-      });
+      confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#3b82f6', '#2563eb', '#1d4ed8'] });
       showSuccess(`${files.length} arquivos processados!`);
     }
   };
 
   const updateQueueStatus = (id: string, status: ProcessingFile['status'], progress: number, result?: string) => {
-    setProcessingQueue(prev => prev.map(item => 
-      item.id === id ? { ...item, status, progress, result } : item
-    ));
+    setProcessingQueue(prev => prev.map(item => item.id === id ? { ...item, status, progress, result } : item));
   };
 
   const handleBatchDownload = async () => {
-    const completedFiles = processingQueue
-      .filter(f => f.status === 'completed' && f.result)
-      .map(f => ({ name: f.name, content: f.result! }));
-    
+    const completedFiles = processingQueue.filter(f => f.status === 'completed' && f.result).map(f => ({ name: f.name, content: f.result! }));
     if (completedFiles.length === 0) return;
-    
     await downloadBatchAsZip(completedFiles);
     showSuccess("Download em lote iniciado!");
   };
@@ -143,47 +134,8 @@ const Index = () => {
       <div className="max-w-7xl mx-auto px-6 py-16 md:py-24">
         {!markdown && !isAnyProcessing && (
           <div className="space-y-32">
-            <div className="text-center space-y-8 animate-in fade-in slide-in-from-top-8 duration-1000">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest border border-primary/20">
-                <Sparkles size={14} className="animate-pulse" /><span>Inteligência Artificial Integrada</span>
-              </div>
-              <h1 className="text-5xl md:text-8xl font-black tracking-tight text-foreground leading-[0.9]">Documentos para <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-600">Markdown Puro.</span></h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">A ferramenta definitiva para desenvolvedores e escritores. Converta PDFs complexos, imagens e HTML em Markdown limpo em segundos.</p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto pt-8">
-                {[
-                  { icon: <Zap className="text-yellow-500" />, title: "Ultra Rápido", desc: "Processamento local instantâneo." },
-                  { icon: <Shield className="text-green-500" />, title: "Privacidade", desc: "Seus arquivos nunca saem do navegador." },
-                  { icon: <Globe className="text-blue-500" />, title: "Multi-idioma", desc: "OCR avançado para +100 línguas." }
-                ].map((feature, i) => (
-                  <div key={i} className="p-6 rounded-3xl bg-card border hover:border-primary/50 transition-all duration-300 text-left group">
-                    <div className="mb-4 p-3 rounded-2xl bg-muted w-fit group-hover:scale-110 transition-transform">{feature.icon}</div>
-                    <h3 className="font-bold mb-1">{feature.title}</h3>
-                    <p className="text-sm text-muted-foreground">{feature.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-16">
-              <div className="text-center space-y-4">
-                <h2 className="text-3xl font-black">Como funciona?</h2>
-                <p className="text-muted-foreground">Três passos simples para a perfeição.</p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-                {[
-                  { icon: <MousePointer2 size={32} />, title: "1. Upload", desc: "Arraste seus arquivos PDF, imagens ou HTML para a zona de drop." },
-                  { icon: <FileCode2 size={32} />, title: "2. Conversão", desc: "Nossa IA extrai o texto e formata automaticamente para Markdown." },
-                  { icon: <DownloadCloud size={32} />, title: "3. Exportação", desc: "Edite se necessário e baixe em .md, .html ou PDF." }
-                ].map((step, i) => (
-                  <div key={i} className="relative flex flex-col items-center text-center space-y-4">
-                    <div className="p-6 rounded-full bg-primary/5 text-primary border border-primary/10 shadow-inner">{step.icon}</div>
-                    <h3 className="text-xl font-bold">{step.title}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{step.desc}</p>
-                    {i < 2 && <div className="hidden md:block absolute top-1/4 -right-6 text-muted-foreground/20">→</div>}
-                  </div>
-                ))}
-              </div>
-            </div>
+            <Hero />
+            <HowItWorks />
           </div>
         )}
 
