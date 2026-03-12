@@ -1,4 +1,3 @@
-MD funcione.">
 import TurndownService from 'turndown';
 import JSZip from 'jszip';
 import * as prettier from "prettier/standalone";
@@ -14,7 +13,6 @@ export interface ConverterOptions {
 }
 
 export const convertToMarkdown = (content: string, type: string, options: ConverterOptions = {}): string => {
-  // Se o conteúdo já for texto puro ou markdown, apenas retornamos (ou limpamos)
   if (type === 'text/markdown' || type === 'text/plain') {
     return content;
   }
@@ -27,8 +25,6 @@ export const convertToMarkdown = (content: string, type: string, options: Conver
       bullet: options.bullet || '*',
     };
 
-    // Garantindo que o TurndownService seja instanciado corretamente
-    // Em alguns builds, ele pode vir como .default
     const Service = (TurndownService as any).default || TurndownService;
     const turndownService = new Service(turndownOptions);
 
@@ -39,7 +35,7 @@ export const convertToMarkdown = (content: string, type: string, options: Conver
     return turndownService.turndown(content);
   } catch (e) {
     console.error("Erro na conversão Turndown:", e);
-    return content; // Fallback para o texto original se a conversão falhar
+    return content;
   }
 };
 
