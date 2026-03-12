@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">DocMD</string>
     <string name="title_activity_main">DocMD</string>
-    <string name="package_name">com.example.docmd</string>
-    <string name="custom_url_scheme">com.example.docmd</string>
+    <string name="package_name">com.docmd.app</string>
+    <string name="custom_url_scheme">com.docmd.app</string>
 </resources>
