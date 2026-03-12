@@ -1,8 +1,10 @@
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Configuração do Worker usando uma versão fixa compatível com a instalada (5.5.207)
-// Usamos a URL do CDN diretamente para evitar problemas de resolução de versão em tempo de execução
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.5.207/pdf.worker.min.mjs';
+// Usando o carregamento de assets do Vite para o worker para garantir que ele seja empacotado corretamente
+// @ts-ignore
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 export const extractTextFromPDF = async (
   file: File, 
@@ -23,9 +25,12 @@ export const extractTextFromPDF = async (
       const page = await pdf.getPage(i);
       const textContent = await page.getTextContent();
       
-      // Extração de texto mais robusta
+      // Extração de texto mais robusta verificando o tipo do item
       const pageText = textContent.items
-        .map((item: any) => item.str)
+        .map((item: any) => {
+          if ('str' in item) return item.str;
+          return '';
+        })
         .join(' ');
 
       if (onProgress) {
@@ -42,6 +47,9 @@ export const extractTextFromPDF = async (
     return fullText.trim();
   } catch (error: any) {
     console.error("Erro no PDF Parser:", error);
+    if (error.message?.includes('worker')) {
+      throw new Error("Erro no motor de processamento. Por favor, recarregue a página.");
+    }
     throw new Error(error.message || "Falha ao ler o arquivo PDF.");
   }
 };
