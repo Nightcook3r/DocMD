@@ -1,3 +1,4 @@
+MD funcione.">
 import TurndownService from 'turndown';
 import JSZip from 'jszip';
 import * as prettier from "prettier/standalone";
@@ -13,20 +14,33 @@ export interface ConverterOptions {
 }
 
 export const convertToMarkdown = (content: string, type: string, options: ConverterOptions = {}): string => {
-  const turndownOptions: any = {
-    headingStyle: options.headingStyle || 'atx',
-    codeBlockStyle: options.codeBlockStyle || 'fenced',
-    hr: options.hr || '---',
-    bullet: options.bullet || '*',
-  };
-
-  const turndownService = new TurndownService(turndownOptions);
-
-  if (!options.keepImages) {
-    turndownService.remove('img');
+  // Se o conteúdo já for texto puro ou markdown, apenas retornamos (ou limpamos)
+  if (type === 'text/markdown' || type === 'text/plain') {
+    return content;
   }
 
-  return turndownService.turndown(content);
+  try {
+    const turndownOptions: any = {
+      headingStyle: options.headingStyle || 'atx',
+      codeBlockStyle: options.codeBlockStyle || 'fenced',
+      hr: options.hr || '---',
+      bullet: options.bullet || '*',
+    };
+
+    // Garantindo que o TurndownService seja instanciado corretamente
+    // Em alguns builds, ele pode vir como .default
+    const Service = (TurndownService as any).default || TurndownService;
+    const turndownService = new Service(turndownOptions);
+
+    if (!options.keepImages) {
+      turndownService.remove('img');
+    }
+
+    return turndownService.turndown(content);
+  } catch (e) {
+    console.error("Erro na conversão Turndown:", e);
+    return content; // Fallback para o texto original se a conversão falhar
+  }
 };
 
 export const formatMarkdown = async (content: string): Promise<string> => {
