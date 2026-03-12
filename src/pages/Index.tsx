@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import FileDropzone from '@/components/FileDropzone';
 import MarkdownEditor from '@/components/MarkdownEditor';
 import HistoryList from '@/components/HistoryList';
@@ -28,6 +28,8 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState("converter");
   const [ocrLang, setOcrLang] = useState(() => localStorage.getItem('docmd_ocr_lang') || "por+eng");
   
+  const converterRef = useRef<HTMLDivElement>(null);
+
   const [settings, setSettings] = useState<MarkdownSettings>(() => {
     const saved = localStorage.getItem('docmd_settings');
     return saved ? JSON.parse(saved) : {
@@ -50,6 +52,10 @@ const Index = () => {
     localStorage.setItem('docmd_settings', JSON.stringify(settings));
     localStorage.setItem('docmd_ocr_lang', ocrLang);
   }, [settings, ocrLang]);
+
+  const scrollToConverter = () => {
+    converterRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   const handleFilesSelect = async (files: File[]) => {
     const newQueue: ProcessingFile[] = files.map(f => ({
@@ -113,6 +119,7 @@ const Index = () => {
     setMarkdown(item.content);
     setFileName(item.name.endsWith('.md') ? item.name : item.name + '.md');
     setActiveTab("converter");
+    scrollToConverter();
   };
 
   const isAnyProcessing = processingQueue.some(f => f.status === 'processing' || f.status === 'pending');
@@ -135,13 +142,13 @@ const Index = () => {
       <div className="max-w-7xl mx-auto px-6 py-16 md:py-24">
         {!markdown && !isAnyProcessing && (
           <div className="space-y-32">
-            <Hero />
+            <Hero onStart={scrollToConverter} />
             <Features />
             <HowItWorks />
           </div>
         )}
 
-        <div className="flex flex-col lg:flex-row gap-12 items-start relative mt-16">
+        <div ref={converterRef} className="flex flex-col lg:flex-row gap-12 items-start relative mt-16 scroll-mt-24">
           <aside className="w-full lg:w-80 space-y-8 shrink-0 lg:sticky lg:top-28 z-10">
             <ConversionSettings ocrLang={ocrLang} onOcrLangChange={setOcrLang} settings={settings} onSettingsChange={setSettings} />
             <div className="space-y-4">
@@ -150,7 +157,7 @@ const Index = () => {
                   <Archive size={18} /> Baixar Tudo (ZIP)
                 </Button>
               )}
-              <ProcessingQueue queue={processingQueue} onClear={() => setProcessingQueue([])} onViewResult={(res, name) => { setMarkdown(res); setFileName(name.endsWith('.md') ? name : name + '.md'); }} />
+              <ProcessingQueue queue={processingQueue} onClear={() => setProcessingQueue([])} onViewResult={(res, name) => { setMarkdown(res); setFileName(name.endsWith('.md') ? name : name + '.md'); scrollToConverter(); }} />
             </div>
           </aside>
 

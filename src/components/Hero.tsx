@@ -4,7 +4,11 @@ import React from 'react';
 import { Sparkles, Zap, Shield, Globe, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-const Hero = () => {
+interface HeroProps {
+  onStart?: () => void;
+}
+
+const Hero = ({ onStart }: HeroProps) => {
   return (
     <div className="relative text-center space-y-10 py-12 md:py-20 overflow-hidden">
       {/* Elementos de fundo decorativos */}
@@ -30,7 +34,11 @@ const Hero = () => {
       </p>
 
       <div className="flex flex-wrap justify-center gap-4 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-400">
-        <Button size="lg" className="h-14 px-8 rounded-2xl text-lg font-bold gap-2 shadow-2xl shadow-primary/20 hover:scale-105 transition-transform">
+        <Button 
+          size="lg" 
+          onClick={onStart}
+          className="h-14 px-8 rounded-2xl text-lg font-bold gap-2 shadow-2xl shadow-primary/20 hover:scale-105 transition-transform"
+        >
           Começar Agora <ArrowRight size={20} />
         </Button>
         <Button size="lg" variant="outline" className="h-14 px-8 rounded-2xl text-lg font-bold border-2 hover:bg-muted/50 transition-all">
