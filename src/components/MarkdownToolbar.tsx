@@ -7,7 +7,7 @@ import {
   Heading1, Heading2, Image as ImageIcon, Strikethrough,
   Table, ListTree
 } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface MarkdownToolbarProps {
   onAction: (prefix: string, suffix: string) => void;
@@ -32,43 +32,45 @@ const MarkdownToolbar = ({ onAction, onInsertTOC, onInsertTable }: MarkdownToolb
 
   return (
     <div className="flex flex-wrap items-center gap-1 p-1.5 bg-muted/30 border-b">
-      {tools.map((tool, index) => (
-        <Tooltip key={index}>
+      <TooltipProvider>
+        {tools.map((tool, index) => (
+          <Tooltip key={index}>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-md hover:bg-background hover:shadow-sm transition-all"
+                onClick={() => onAction(tool.prefix, tool.suffix)}
+              >
+                {tool.icon}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-[10px] font-bold uppercase tracking-wider">
+              {tool.label} {tool.shortcut && <span className="ml-2 opacity-50">{tool.shortcut}</span>}
+            </TooltipContent>
+          </Tooltip>
+        ))}
+        
+        <div className="w-px h-4 bg-border mx-1" />
+        
+        <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 rounded-md hover:bg-background hover:shadow-sm transition-all"
-              onClick={() => onAction(tool.prefix, tool.suffix)}
-            >
-              {tool.icon}
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md" onClick={onInsertTOC}>
+              <ListTree size={16} className="text-primary" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom" className="text-[10px] font-bold uppercase tracking-wider">
-            {tool.label} {tool.shortcut && <span className="ml-2 opacity-50">{tool.shortcut}</span>}
-          </TooltipContent>
+          <TooltipContent side="bottom" className="text-[10px] font-bold uppercase tracking-wider">Gerar Sumário</TooltipContent>
         </Tooltip>
-      ))}
-      
-      <div className="w-px h-4 bg-border mx-1" />
-      
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md" onClick={onInsertTOC}>
-            <ListTree size={16} className="text-primary" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="bottom" className="text-[10px] font-bold uppercase tracking-wider">Gerar Sumário</TooltipContent>
-      </Tooltip>
 
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md" onClick={onInsertTable}>
-            <Table size={16} className="text-primary" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="bottom" className="text-[10px] font-bold uppercase tracking-wider">Inserir Tabela</TooltipContent>
-      </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md" onClick={onInsertTable}>
+              <Table size={16} className="text-primary" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-[10px] font-bold uppercase tracking-wider">Inserir Tabela</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 };
