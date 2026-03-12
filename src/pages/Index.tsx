@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import FileDropzone from '@/components/FileDropzone';
 import MarkdownEditor from '@/components/MarkdownEditor';
 import HistoryList from '@/components/HistoryList';
@@ -48,7 +48,7 @@ const Index = () => {
     localStorage.setItem('docmd_ocr_lang', ocrLang);
   }, [settings, ocrLang]);
 
-  const handleFilesSelect = useCallback(async (files: File[]) => {
+  const handleFilesSelect = async (files: File[]) => {
     const newQueue: ProcessingFile[] = files.map(f => ({
       id: crypto.randomUUID(),
       name: f.name,
@@ -98,34 +98,7 @@ const Index = () => {
       });
       showSuccess(`${files.length} arquivos processados!`);
     }
-  }, [settings, addToHistory]);
-
-  // Suporte para colar imagens
-  useEffect(() => {
-    const handlePaste = (e: ClipboardEvent) => {
-      const items = e.clipboardData?.items;
-      if (!items) return;
-
-      const files: File[] = [];
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].type.indexOf('image') !== -1) {
-          const blob = items[i].getAsFile();
-          if (blob) {
-            const file = new File([blob], `pasted-image-${Date.now()}.png`, { type: blob.type });
-            files.push(file);
-          }
-        }
-      }
-
-      if (files.length > 0) {
-        handleFilesSelect(files);
-        showSuccess("Imagem colada detectada!");
-      }
-    };
-
-    window.addEventListener('paste', handlePaste);
-    return () => window.removeEventListener('paste', handlePaste);
-  }, [handleFilesSelect]);
+  };
 
   const updateQueueStatus = (id: string, status: ProcessingFile['status'], progress: number, result?: string) => {
     setProcessingQueue(prev => prev.map(item => 
