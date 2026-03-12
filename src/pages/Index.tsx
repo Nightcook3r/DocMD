@@ -9,11 +9,12 @@ import ConversionSettings, { MarkdownSettings } from '@/components/ConversionSet
 import ThemeToggle from '@/components/ThemeToggle';
 import Hero from '@/components/Hero';
 import HowItWorks from '@/components/HowItWorks';
+import Features from '@/components/Features';
+import Footer from '@/components/Footer';
 import { convertToMarkdown, downloadMarkdown, downloadBatchAsZip } from '@/utils/converter';
 import { extractTextFromPDF } from '@/utils/pdf-parser';
 import { extractTextFromImage } from '@/utils/ocr-parser';
 import { useHistory, HistoryItem } from '@/hooks/use-history';
-import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Loader2, History, FileUp, Archive } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showError, showSuccess } from '@/utils/toast';
@@ -135,6 +136,7 @@ const Index = () => {
         {!markdown && !isAnyProcessing && (
           <div className="space-y-32">
             <Hero />
+            <Features />
             <HowItWorks />
           </div>
         )}
@@ -193,15 +195,7 @@ const Index = () => {
           </main>
         </div>
 
-        <footer className="mt-32 border-t pt-16 pb-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
-            <div className="col-span-2 space-y-4">
-              <div className="flex items-center gap-2 font-black text-xl"><FileUp size={20} className="text-primary" /><span>DocMD</span></div>
-              <p className="text-muted-foreground max-w-sm">A ferramenta de conversão mais poderosa e privada da web. 100% open-source e focada em performance.</p>
-            </div>
-          </div>
-          <MadeWithDyad />
-        </footer>
+        <Footer />
       </div>
     </div>
   );
