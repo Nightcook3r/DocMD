@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { 
   Download, Copy, Check, Trash2, Eye, Edit3, Columns, 
-  FileEdit, Clock, Type, AlignLeft, Sparkles, Printer, FileCode
+  FileEdit, Clock, Type, AlignLeft, Sparkles, Printer, FileCode,
+  LayoutTemplate, ChevronDown
 } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 import MarkdownPreview from './MarkdownPreview';
@@ -17,7 +18,15 @@ import { getDocumentStats } from '@/utils/stats';
 import { marked } from 'marked';
 import { formatMarkdown, downloadHtml } from '@/utils/converter';
 import { generateTOC, generateMarkdownTable } from '@/utils/toc';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { MARKDOWN_TEMPLATES } from '@/utils/templates';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel
+} from "@/components/ui/dropdown-menu";
 
 interface MarkdownEditorProps {
   content: string;
@@ -61,7 +70,7 @@ const MarkdownEditor = ({ content, fileName, onFileNameChange, onChange, onDownl
       return;
     }
     onChange(toc + content);
-    showSuccess("Sumário gerado no topo!");
+    showSuccess("Sumário gerado!");
   };
 
   const handleInsertTable = () => {
@@ -91,6 +100,13 @@ const MarkdownEditor = ({ content, fileName, onFileNameChange, onChange, onDownl
     setTimeout(() => setCopied(null), 2000);
   };
 
+  const applyTemplate = (templateContent: string) => {
+    const processed = templateContent.replace(/\${new Date\(\)\.toLocaleDateString\(\)}/g, new Date().toLocaleDateString())
+                                   .replace(/\${new Date\(\)\.toISOString\(\)}/g, new Date().toISOString());
+    onChange(processed);
+    showSuccess("Modelo aplicado!");
+  };
+
   return (
     <div className="w-full space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700 print:m-0">
       <div className="flex flex-col lg:flex-row items-center justify-between bg-card border rounded-2xl p-3 gap-4 shadow-sm print:hidden">
@@ -114,6 +130,23 @@ const MarkdownEditor = ({ content, fileName, onFileNameChange, onChange, onDownl
         </div>
 
         <div className="flex flex-wrap gap-2 w-full lg:w-auto justify-end">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2 h-9 rounded-xl text-xs font-bold border-primary/20 hover:bg-primary/5">
+                <LayoutTemplate size={14} /> Modelos <ChevronDown size={12} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="rounded-xl p-2 w-56">
+              <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-muted-foreground">Escolha um ponto de partida</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {MARKDOWN_TEMPLATES.map((t, i) => (
+                <DropdownMenuItem key={i} onClick={() => applyTemplate(t.content)} className="rounded-lg cursor-pointer py-2">
+                  {t.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <Button variant="outline" size="sm" onClick={handleFormat} disabled={isFormatting} className="gap-2 h-9 rounded-xl text-xs font-bold text-primary border-primary/20 hover:bg-primary/5">
             <Sparkles size={14} className={cn(isFormatting && "animate-spin")} /> Limpar
           </Button>
