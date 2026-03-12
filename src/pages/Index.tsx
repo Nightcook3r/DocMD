@@ -128,7 +128,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background transition-colors duration-500">
-      <nav className="border-b bg-background/80 backdrop-blur-xl sticky top-0 z-50">
+      <nav className="border-b bg-background/95 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3 group cursor-pointer" onClick={() => { setMarkdown(''); setFileName('documento.md'); setActiveTab('converter'); }}>
             <div className="bg-primary text-primary-foreground p-2 rounded-2xl group-hover:rotate-12 transition-transform duration-300 shadow-lg shadow-primary/20">
@@ -164,8 +164,8 @@ const Index = () => {
           </div>
         )}
 
-        <div className="flex flex-col lg:flex-row gap-12 items-start">
-          <aside className="w-full lg:w-80 space-y-8 shrink-0 sticky top-32">
+        <div className="flex flex-col lg:flex-row gap-12 items-start relative">
+          <aside className="w-full lg:w-80 space-y-8 shrink-0 lg:sticky lg:top-28 z-10">
             <ConversionSettings ocrLang={ocrLang} onOcrLangChange={setOcrLang} settings={settings} onSettingsChange={setSettings} />
             <div className="space-y-4">
               {hasCompletedFiles && (

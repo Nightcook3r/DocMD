@@ -120,7 +120,7 @@ const MarkdownEditor = ({ content, fileName, onFileNameChange, onChange, onDownl
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="primary" size="sm" className="gap-2 h-9 rounded-xl text-xs font-bold shadow-lg shadow-primary/20">
+              <Button variant="default" size="sm" className="gap-2 h-9 rounded-xl text-xs font-bold shadow-lg shadow-primary/20">
                 <Download size={14} /> Exportar
               </Button>
             </DropdownMenuTrigger>
