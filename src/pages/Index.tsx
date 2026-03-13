@@ -10,6 +10,8 @@ import ThemeToggle from '@/components/ThemeToggle';
 import Hero from '@/components/Hero';
 import HowItWorks from '@/components/HowItWorks';
 import Features from '@/components/Features';
+import Testimonials from '@/components/Testimonials';
+import Pricing from '@/components/Pricing';
 import AboutMarkdown from '@/components/AboutMarkdown';
 import MarkdownGuide from '@/components/MarkdownGuide';
 import FAQ from '@/components/FAQ';
@@ -151,6 +153,8 @@ const Index = () => {
             <Features />
             <HowItWorks />
             <AdBanner />
+            <Testimonials />
+            <Pricing />
             <AboutMarkdown />
             <MarkdownGuide />
             <FAQ />
