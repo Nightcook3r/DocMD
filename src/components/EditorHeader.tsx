@@ -1,13 +1,14 @@
 "use client";
 
 import React from 'react';
-import { FileEdit, Edit3, Eye, Columns, LayoutTemplate, ChevronDown, Sparkles, Download, FileCode, Printer, Check, Copy, Trash2 } from 'lucide-react';
+import { FileEdit, Edit3, Eye, Columns, LayoutTemplate, ChevronDown, Sparkles, Download, FileCode, Printer, Check, Copy, Trash2, Share2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import { cn } from '@/lib/utils';
 import { MARKDOWN_TEMPLATES } from '@/utils/templates';
+import { showSuccess } from '@/utils/toast';
 
 interface EditorHeaderProps {
   fileName: string;
@@ -30,6 +31,24 @@ const EditorHeader = ({
   onFormat, isFormatting, onDownload, onDownloadHtml, onPrint,
   onCopy, copied, onClear
 }: EditorHeaderProps) => {
+  
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'DocMD - Conversor de Markdown',
+          text: 'Estou a usar o DocMD para converter os meus documentos!',
+          url: window.location.href,
+        });
+      } catch (err) {
+        console.log('Erro ao partilhar', err);
+      }
+    } else {
+      await navigator.clipboard.writeText(window.location.href);
+      showSuccess("Link copiado para a área de transferência!");
+    }
+  };
+
   return (
     <div className="flex flex-col lg:flex-row items-center justify-between bg-card border rounded-2xl p-3 gap-4 shadow-sm print:hidden">
       <div className="flex items-center gap-3 w-full lg:w-auto">
@@ -52,6 +71,10 @@ const EditorHeader = ({
       </div>
 
       <div className="flex flex-wrap gap-2 w-full lg:w-auto justify-end">
+        <Button variant="ghost" size="sm" onClick={handleShare} className="h-9 px-3 rounded-xl text-xs font-bold gap-2">
+          <Share2 size={14} /> Partilhar
+        </Button>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="gap-2 h-9 rounded-xl text-xs font-bold border-primary/20 hover:bg-primary/5">
