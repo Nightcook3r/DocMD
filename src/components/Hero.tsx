@@ -69,12 +69,12 @@ const Hero = ({ onStart }: HeroProps) => {
         ].map((feature, i) => (
           <div key={i} className="relative p-8 rounded-[2.5rem] bg-card border-2 border-transparent hover:border-primary/20 hover:bg-muted/30 transition-all duration-500 text-left group overflow-hidden">
             <div className={`mb-6 p-4 rounded-2xl ${feature.color} w-fit group-hover:scale-110 transition-transform duration-500`}>
-              {React.cloneElement(feature.icon as React.ReactElement, { size: 28 })}
+              {React.cloneElement(feature.icon as React.ReactElement, { size: 28 } as any)}
             </div>
             <h3 className="text-xl font-black mb-2">{feature.title}</h3>
             <p className="text-muted-foreground leading-relaxed">{feature.desc}</p>
             <div className="absolute -bottom-4 -right-4 opacity-5 group-hover:opacity-10 transition-opacity">
-              {React.cloneElement(feature.icon as React.ReactElement, { size: 120 })}
+              {React.cloneElement(feature.icon as React.ReactElement, { size: 120 } as any)}
             </div>
           </div>
         ))}

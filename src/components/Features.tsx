@@ -62,7 +62,7 @@ const Features = () => {
             className="group p-8 rounded-[2rem] bg-card border-2 border-transparent hover:border-primary/10 hover:bg-muted/30 transition-all duration-500"
           >
             <div className="mb-6 p-4 rounded-2xl bg-background border shadow-sm w-fit group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
-              {React.cloneElement(feature.icon as React.ReactElement, { size: 24 })}
+              {React.cloneElement(feature.icon as React.ReactElement, { size: 24 } as any)}
             </div>
             <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
             <p className="text-muted-foreground leading-relaxed text-sm">
