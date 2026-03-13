@@ -12,8 +12,8 @@ const Contact = () => {
   const navigate = useNavigate();
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
-  // NOTA: Substitua 'seu_id_aqui' pelo ID que o Formspree lhe fornecer
-  const FORMSPREE_ID = "seu_id_aqui"; 
+  // ID do Formspree configurado
+  const FORMSPREE_ID = "xjgarnnw"; 
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
