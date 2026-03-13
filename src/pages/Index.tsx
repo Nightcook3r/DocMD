@@ -10,6 +10,7 @@ import ThemeToggle from '@/components/ThemeToggle';
 import Hero from '@/components/Hero';
 import HowItWorks from '@/components/HowItWorks';
 import Features from '@/components/Features';
+import AboutMarkdown from '@/components/AboutMarkdown';
 import Footer from '@/components/Footer';
 import { convertToMarkdown, downloadMarkdown, downloadBatchAsZip } from '@/utils/converter';
 import { extractTextFromPDF } from '@/utils/pdf-parser';
@@ -145,6 +146,7 @@ const Index = () => {
             <Hero onStart={scrollToConverter} />
             <Features />
             <HowItWorks />
+            <AboutMarkdown />
           </div>
         )}
 

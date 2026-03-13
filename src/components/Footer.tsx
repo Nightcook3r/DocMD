@@ -1,8 +1,9 @@
 "use client";
 
 import React from 'react';
-import { FileUp, Github, Twitter, Linkedin, Mail } from 'lucide-react';
+import { FileUp, Github, Twitter, Linkedin } from 'lucide-react';
 import { MadeWithDyad } from './made-with-dyad';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
@@ -35,10 +36,10 @@ const Footer = () => {
         <div className="space-y-6">
           <h4 className="font-bold text-sm uppercase tracking-widest">Produto</h4>
           <ul className="space-y-4 text-sm text-muted-foreground">
-            <li><a href="#" className="hover:text-primary transition-colors">Funcionalidades</a></li>
-            <li><a href="#" className="hover:text-primary transition-colors">Como Funciona</a></li>
-            <li><a href="#" className="hover:text-primary transition-colors">Modelos</a></li>
-            <li><a href="#" className="hover:text-primary transition-colors">Privacidade</a></li>
+            <li><Link to="/" className="hover:text-primary transition-colors">Funcionalidades</Link></li>
+            <li><Link to="/" className="hover:text-primary transition-colors">Como Funciona</Link></li>
+            <li><Link to="/privacy" className="hover:text-primary transition-colors">Privacidade</Link></li>
+            <li><Link to="/terms" className="hover:text-primary transition-colors">Termos de Uso</Link></li>
           </ul>
         </div>
 
@@ -48,7 +49,6 @@ const Footer = () => {
             <li><a href="#" className="hover:text-primary transition-colors">Documentação</a></li>
             <li><a href="#" className="hover:text-primary transition-colors">FAQ</a></li>
             <li><a href="#" className="hover:text-primary transition-colors">Contato</a></li>
-            <li><a href="#" className="hover:text-primary transition-colors">Status</a></li>
           </ul>
         </div>
       </div>
