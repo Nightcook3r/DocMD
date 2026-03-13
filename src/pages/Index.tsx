@@ -11,7 +11,9 @@ import Hero from '@/components/Hero';
 import HowItWorks from '@/components/HowItWorks';
 import Features from '@/components/Features';
 import AboutMarkdown from '@/components/AboutMarkdown';
+import FAQ from '@/components/FAQ';
 import Footer from '@/components/Footer';
+import AdBanner from '@/components/AdBanner';
 import { convertToMarkdown, downloadMarkdown, downloadBatchAsZip } from '@/utils/converter';
 import { extractTextFromPDF } from '@/utils/pdf-parser';
 import { extractTextFromImage } from '@/utils/ocr-parser';
@@ -144,9 +146,12 @@ const Index = () => {
         {!markdown && !isAnyProcessing && (
           <div className="space-y-32">
             <Hero onStart={scrollToConverter} />
+            <AdBanner />
             <Features />
             <HowItWorks />
+            <AdBanner />
             <AboutMarkdown />
+            <FAQ />
           </div>
         )}
 
@@ -161,6 +166,7 @@ const Index = () => {
               )}
               <ProcessingQueue queue={processingQueue} onClear={() => setProcessingQueue([])} onViewResult={(res, name) => { setMarkdown(res); setFileName(name.endsWith('.md') ? name : name + '.md'); scrollToConverter(); }} />
             </div>
+            <AdBanner className="hidden lg:flex" />
           </aside>
 
           <main className="flex-1 w-full min-w-0">
@@ -184,14 +190,17 @@ const Index = () => {
                       </div>
                     )}
                     {markdown && (
-                      <MarkdownEditor 
-                        content={markdown} 
-                        fileName={fileName}
-                        onFileNameChange={setFileName}
-                        onChange={setMarkdown}
-                        onDownload={() => downloadMarkdown(markdown, fileName)}
-                        onClear={() => { setMarkdown(''); setFileName('documento.md'); }}
-                      />
+                      <>
+                        <MarkdownEditor 
+                          content={markdown} 
+                          fileName={fileName}
+                          onFileNameChange={setFileName}
+                          onChange={setMarkdown}
+                          onDownload={() => downloadMarkdown(markdown, fileName)}
+                          onClear={() => { setMarkdown(''); setFileName('documento.md'); }}
+                        />
+                        <AdBanner />
+                      </>
                     )}
                   </div>
                 )}
