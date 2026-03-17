@@ -13,7 +13,6 @@ import Features from '@/components/Features';
 import Testimonials from '@/components/Testimonials';
 import Pricing from '@/components/Pricing';
 import AboutMarkdown from '@/components/AboutMarkdown';
-import MarkdownGuide from '@/components/MarkdownGuide';
 import FAQ from '@/components/FAQ';
 import Footer from '@/components/Footer';
 import AdBanner from '@/components/AdBanner';
@@ -156,7 +155,6 @@ const Index = () => {
             <Testimonials />
             <Pricing />
             <AboutMarkdown />
-            <MarkdownGuide />
             <FAQ />
           </div>
         )}
